@@ -72,6 +72,7 @@
 ##   easier substring extraction than regular expressions
 
 
+{.push raises: [].}
 import parseutils
 from math import pow, floor, log10
 from algorithm import reverse
@@ -991,7 +992,7 @@ proc toOctal*(c: char): string {.noSideEffect, rtl, extern: "nsuToOctal".} =
     result[i] = chr(val mod 8 + ord('0'))
     val = val div 8
 
-proc fromBin*[T: SomeInteger](s: string): T =
+proc fromBin*[T: SomeInteger](s: string): T {.raises: ValueError.} =
   ## Parses a binary integer value from a string `s`.
   ##
   ## If `s` is not a valid binary integer, `ValueError` is raised. `s` can have
@@ -1014,7 +1015,7 @@ proc fromBin*[T: SomeInteger](s: string): T =
   if p != s.len or p == 0:
     raise newException(ValueError, "invalid binary integer: " & s)
 
-proc fromOct*[T: SomeInteger](s: string): T =
+proc fromOct*[T: SomeInteger](s: string): T {.raises: ValueError.} =
   ## Parses an octal integer value from a string `s`.
   ##
   ## If `s` is not a valid octal integer, `ValueError` is raised. `s` can have
@@ -1037,7 +1038,7 @@ proc fromOct*[T: SomeInteger](s: string): T =
   if p != s.len or p == 0:
     raise newException(ValueError, "invalid oct integer: " & s)
 
-proc fromHex*[T: SomeInteger](s: string): T =
+proc fromHex*[T: SomeInteger](s: string): T {.raises: ValueError.} =
   ## Parses a hex integer value from a string `s`.
   ##
   ## If `s` is not a valid hex integer, `ValueError` is raised. `s` can have
@@ -1076,7 +1077,7 @@ proc intToStr*(x: int, minchars: Positive = 1): string {.noSideEffect,
     result = '-' & result
 
 proc parseInt*(s: string): int {.noSideEffect, procvar,
-  rtl, extern: "nsuParseInt".} =
+  rtl, extern: "nsuParseInt", raises: ValueError.} =
   ## Parses a decimal integer value contained in `s`.
   ##
   ## If `s` is not a valid integer, `ValueError` is raised.
@@ -1087,7 +1088,7 @@ proc parseInt*(s: string): int {.noSideEffect, procvar,
     raise newException(ValueError, "invalid integer: " & s)
 
 proc parseBiggestInt*(s: string): BiggestInt {.noSideEffect, procvar,
-  rtl, extern: "nsuParseBiggestInt".} =
+  rtl, extern: "nsuParseBiggestInt", raises: ValueError.} =
   ## Parses a decimal integer value contained in `s`.
   ##
   ## If `s` is not a valid integer, `ValueError` is raised.
@@ -1096,7 +1097,7 @@ proc parseBiggestInt*(s: string): BiggestInt {.noSideEffect, procvar,
     raise newException(ValueError, "invalid integer: " & s)
 
 proc parseUInt*(s: string): uint {.noSideEffect, procvar,
-  rtl, extern: "nsuParseUInt".} =
+  rtl, extern: "nsuParseUInt", raises: ValueError.} =
   ## Parses a decimal unsigned integer value contained in `s`.
   ##
   ## If `s` is not a valid integer, `ValueError` is raised.
@@ -1105,7 +1106,7 @@ proc parseUInt*(s: string): uint {.noSideEffect, procvar,
     raise newException(ValueError, "invalid unsigned integer: " & s)
 
 proc parseBiggestUInt*(s: string): BiggestUInt {.noSideEffect, procvar,
-  rtl, extern: "nsuParseBiggestUInt".} =
+  rtl, extern: "nsuParseBiggestUInt", raises: ValueError.} =
   ## Parses a decimal unsigned integer value contained in `s`.
   ##
   ## If `s` is not a valid integer, `ValueError` is raised.
@@ -1114,7 +1115,7 @@ proc parseBiggestUInt*(s: string): BiggestUInt {.noSideEffect, procvar,
     raise newException(ValueError, "invalid unsigned integer: " & s)
 
 proc parseFloat*(s: string): float {.noSideEffect, procvar,
-  rtl, extern: "nsuParseFloat".} =
+  rtl, extern: "nsuParseFloat", raises: ValueError.} =
   ## Parses a decimal floating point value contained in `s`.
   ##
   ## If `s` is not a valid floating point number, `ValueError` is raised.
@@ -1127,7 +1128,7 @@ proc parseFloat*(s: string): float {.noSideEffect, procvar,
     raise newException(ValueError, "invalid float: " & s)
 
 proc parseBinInt*(s: string): int {.noSideEffect, procvar,
-  rtl, extern: "nsuParseBinInt".} =
+  rtl, extern: "nsuParseBinInt", raises: ValueError.} =
   ## Parses a binary integer value contained in `s`.
   ##
   ## If `s` is not a valid binary integer, `ValueError` is raised. `s` can have
@@ -1145,7 +1146,7 @@ proc parseBinInt*(s: string): int {.noSideEffect, procvar,
     raise newException(ValueError, "invalid binary integer: " & s)
 
 proc parseOctInt*(s: string): int {.noSideEffect,
-  rtl, extern: "nsuParseOctInt".} =
+  rtl, extern: "nsuParseOctInt", raises: ValueError.} =
   ## Parses an octal integer value contained in `s`.
   ##
   ## If `s` is not a valid oct integer, `ValueError` is raised. `s` can have one
@@ -1156,7 +1157,7 @@ proc parseOctInt*(s: string): int {.noSideEffect,
     raise newException(ValueError, "invalid oct integer: " & s)
 
 proc parseHexInt*(s: string): int {.noSideEffect, procvar,
-  rtl, extern: "nsuParseHexInt".} =
+  rtl, extern: "nsuParseHexInt", raises: ValueError.} =
   ## Parses a hexadecimal integer value contained in `s`.
   ##
   ## If `s` is not a valid hex integer, `ValueError` is raised. `s` can have one
@@ -1182,7 +1183,7 @@ proc generateHexCharToValueMap(): string =
 const hexCharToValueMap = generateHexCharToValueMap()
 
 proc parseHexStr*(s: string): string {.noSideEffect, procvar,
-  rtl, extern: "nsuParseHexStr".} =
+  rtl, extern: "nsuParseHexStr", raises: ValueError.} =
   ## Convert hex-encoded string to byte string, e.g.:
   ##
   ## Raises ``ValueError`` for an invalid hex values. The comparison is
@@ -1213,7 +1214,7 @@ proc parseHexStr*(s: string): string {.noSideEffect, procvar,
     else:
       result[pos div 2] = chr(val + buf shl 4)
 
-proc parseBool*(s: string): bool =
+proc parseBool*(s: string): bool {.raises: ValueError.} =
   ## Parses a value into a `bool`.
   ##
   ## If ``s`` is one of the following values: ``y, yes, true, 1, on``, then
@@ -1229,7 +1230,7 @@ proc parseBool*(s: string): bool =
   of "n", "no", "false", "0", "off": result = false
   else: raise newException(ValueError, "cannot interpret as a bool: " & s)
 
-proc parseEnum*[T: enum](s: string): T =
+proc parseEnum*[T: enum](s: string): T {.raises: ValueError.} =
   ## Parses an enum ``T``.
   ##
   ## Raises ``ValueError`` for an invalid value in `s`. The comparison is
@@ -2218,7 +2219,7 @@ proc escape*(s: string, prefix = "\"", suffix = "\""): string {.noSideEffect,
   add(result, suffix)
 
 proc unescape*(s: string, prefix = "\"", suffix = "\""): string {.noSideEffect,
-  rtl, extern: "nsuUnescape".} =
+  rtl, extern: "nsuUnescape", raises: ValueError.} =
   ## Unescapes a string `s`.
   ##
   ## This complements `escape proc<#escape,string,string,string>`_
@@ -2620,11 +2621,11 @@ proc findNormalized(x: string, inArray: openArray[string]): int =
               # security hole...
   return -1
 
-proc invalidFormatString() {.noinline.} =
+proc invalidFormatString() {.noinline, raises: ValueError.} =
   raise newException(ValueError, "invalid format string")
 
 proc addf*(s: var string, formatstr: string, a: varargs[string, `$`]) {.
-  noSideEffect, rtl, extern: "nsuAddf".} =
+  noSideEffect, rtl, extern: "nsuAddf", raises: ValueError.} =
   ## The same as ``add(s, formatstr % a)``, but more efficient.
   const PatternChars = {'a'..'z', 'A'..'Z', '0'..'9', '\128'..'\255', '_'}
   var i = 0
@@ -2687,7 +2688,7 @@ proc addf*(s: var string, formatstr: string, a: varargs[string, `$`]) {.
       inc(i)
 
 proc `%` *(formatstr: string, a: openArray[string]): string {.noSideEffect,
-  rtl, extern: "nsuFormatOpenArray".} =
+  rtl, extern: "nsuFormatOpenArray", raises: ValueError.} =
   ## Interpolates a format string with the values from `a`.
   ##
   ## The `substitution`:idx: operator performs string substitutions in
@@ -2735,14 +2736,14 @@ proc `%` *(formatstr: string, a: openArray[string]): string {.noSideEffect,
   addf(result, formatstr, a)
 
 proc `%` *(formatstr, a: string): string {.noSideEffect,
-  rtl, extern: "nsuFormatSingleElem".} =
+  rtl, extern: "nsuFormatSingleElem", raises: ValueError.} =
   ## This is the same as ``formatstr % [a]`` (see
   ## `% proc<#%25,string,openArray[string]>`_).
   result = newStringOfCap(formatstr.len + a.len)
   addf(result, formatstr, [a])
 
 proc format*(formatstr: string, a: varargs[string, `$`]): string {.noSideEffect,
-  rtl, extern: "nsuFormatVarargs".} =
+  rtl, extern: "nsuFormatVarargs", raises: ValueError.} =
   ## This is the same as ``formatstr % a`` (see
   ## `% proc<#%25,string,openArray[string]>`_) except that it supports
   ## auto stringification.
@@ -2859,6 +2860,9 @@ proc isNilOrWhitespace*(s: string): bool {.noSideEffect, procvar, rtl,
     deprecated: "use isEmptyOrWhitespace instead".} =
   ## Alias for isEmptyOrWhitespace
   result = isEmptyOrWhitespace(s)
+
+{.pop.} # {.push raises: [].}
+
 
 when isMainModule:
   proc nonStaticTests =

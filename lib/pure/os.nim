@@ -41,6 +41,7 @@
 ## * `dynlib module <dynlib.html>`_
 ## * `streams module <streams.html>`_
 
+{.push raises: [].}
 include "system/inclrtl"
 
 import
@@ -1162,7 +1163,8 @@ const
 
 proc findExe*(exe: string, followSymlinks: bool = true;
               extensions: openArray[string]=ExeExts): string {.
-  tags: [ReadDirEffect, ReadEnvEffect, ReadIOEffect], noNimScript.} =
+  tags: [ReadDirEffect, ReadEnvEffect, ReadIOEffect],
+  noNimScript, raises: OSError .} =
   ## Searches for `exe` in the current working directory and then
   ## in directories listed in the ``PATH`` environment variable.
   ##
@@ -1218,7 +1220,8 @@ when weirdTarget:
   const times = "fake const"
   template Time(x: untyped): untyped = string
 
-proc getLastModificationTime*(file: string): times.Time {.rtl, extern: "nos$1", noNimScript.} =
+proc getLastModificationTime*(file: string): times.Time {.rtl,
+  extern: "nos$1", noNimScript, raises: OSError.} =
   ## Returns the `file`'s last modification time.
   ##
   ## See also:
@@ -1236,7 +1239,8 @@ proc getLastModificationTime*(file: string): times.Time {.rtl, extern: "nos$1", 
     result = fromWinTime(rdFileTime(f.ftLastWriteTime))
     findClose(h)
 
-proc getLastAccessTime*(file: string): times.Time {.rtl, extern: "nos$1", noNimScript.} =
+proc getLastAccessTime*(file: string): times.Time {.rtl,
+  extern: "nos$1", noNimScript, raises: OSError.} =
   ## Returns the `file`'s last read or write access time.
   ##
   ## See also:
@@ -1254,7 +1258,8 @@ proc getLastAccessTime*(file: string): times.Time {.rtl, extern: "nos$1", noNimS
     result = fromWinTime(rdFileTime(f.ftLastAccessTime))
     findClose(h)
 
-proc getCreationTime*(file: string): times.Time {.rtl, extern: "nos$1", noNimScript.} =
+proc getCreationTime*(file: string): times.Time {.rtl,
+  extern: "nos$1", noNimScript, raises: OSError.} =
   ## Returns the `file`'s creation time.
   ##
   ## **Note:** Under POSIX OS's, the returned time may actually be the time at
@@ -1276,7 +1281,8 @@ proc getCreationTime*(file: string): times.Time {.rtl, extern: "nos$1", noNimScr
     result = fromWinTime(rdFileTime(f.ftCreationTime))
     findClose(h)
 
-proc fileNewer*(a, b: string): bool {.rtl, extern: "nos$1", noNimScript.} =
+proc fileNewer*(a, b: string): bool {.rtl,
+  extern: "nos$1", noNimScript, raises: OSError.} =
   ## Returns true if the file `a` is newer than file `b`, i.e. if `a`'s
   ## modification time is later than `b`'s.
   ##
@@ -1293,7 +1299,8 @@ proc fileNewer*(a, b: string): bool {.rtl, extern: "nos$1", noNimScript.} =
   else:
     result = getLastModificationTime(a) > getLastModificationTime(b)
 
-proc getCurrentDir*(): string {.rtl, extern: "nos$1", tags: [], noNimScript.} =
+proc getCurrentDir*(): string {.rtl, extern: "nos$1",
+                               tags: [], noNimScript, raises: OSError.} =
   ## Returns the `current working directory`:idx: i.e. where the built
   ## binary is run.
   ##
@@ -1348,7 +1355,8 @@ proc getCurrentDir*(): string {.rtl, extern: "nos$1", tags: [], noNimScript.} =
         else:
           raiseOSError(osLastError())
 
-proc setCurrentDir*(newDir: string) {.inline, tags: [], noNimScript.} =
+proc setCurrentDir*(newDir: string) {.inline, tags: [],
+                                     noNimScript, raises: OSError.} =
   ## Sets the `current working directory`:idx:; `OSError`
   ## is raised if `newDir` cannot been set.
   ##
@@ -1367,7 +1375,8 @@ proc setCurrentDir*(newDir: string) {.inline, tags: [], noNimScript.} =
     if chdir(newDir) != 0'i32: raiseOSError(osLastError(), newDir)
 
 when not weirdTarget:
-  proc absolutePath*(path: string, root = getCurrentDir()): string {.noNimScript.} =
+  proc absolutePath*(path: string, root = getCurrentDir()): string {.
+    noNimScript, raises: ValueError.} =
     ## Returns the absolute path of `path`, rooted at `root` (which must be absolute;
     ## default: current directory).
     ## If `path` is absolute, return it, ignoring `root`.
@@ -1467,7 +1476,7 @@ when defined(Windows) and not weirdTarget:
         )
 
 proc sameFile*(path1, path2: string): bool {.rtl, extern: "nos$1",
-  tags: [ReadDirEffect], noNimScript.} =
+  tags: [ReadDirEffect], noNimScript, raises: OSError.} =
   ## Returns true if both pathname arguments refer to the same physical
   ## file or directory.
   ##
@@ -1512,7 +1521,7 @@ proc sameFile*(path1, path2: string): bool {.rtl, extern: "nos$1",
       result = a.st_dev == b.st_dev and a.st_ino == b.st_ino
 
 proc sameFileContent*(path1, path2: string): bool {.rtl, extern: "nos$1",
-  tags: [ReadIOEffect], noNimScript.} =
+  tags: [ReadIOEffect], noNimScript, raises: IOError.} =
   ## Returns true if both pathname arguments refer to files with identical
   ## binary content.
   ##
@@ -1563,7 +1572,7 @@ type
     fpOthersRead           ## read access for others
 
 proc getFilePermissions*(filename: string): set[FilePermission] {.
-  rtl, extern: "nos$1", tags: [ReadDirEffect], noNimScript.} =
+  rtl, extern: "nos$1", tags: [ReadDirEffect], noNimScript, raises: OSError.} =
   ## Retrieves file permissions for `filename`.
   ##
   ## `OSError` is raised in case of an error.
@@ -1601,7 +1610,7 @@ proc getFilePermissions*(filename: string): set[FilePermission] {.
       result = {fpUserExec..fpOthersRead}
 
 proc setFilePermissions*(filename: string, permissions: set[FilePermission]) {.
-  rtl, extern: "nos$1", tags: [WriteDirEffect], noNimScript.} =
+  rtl, extern: "nos$1", tags: [WriteDirEffect], noNimScript, raises: OSError.} =
   ## Sets the file permissions for `filename`.
   ##
   ## `OSError` is raised in case of an error.
@@ -1643,7 +1652,7 @@ proc setFilePermissions*(filename: string, permissions: set[FilePermission]) {.
     if res2 == - 1'i32: raiseOSError(osLastError(), $(filename, permissions))
 
 proc copyFile*(source, dest: string) {.rtl, extern: "nos$1",
-  tags: [ReadIOEffect, WriteIOEffect], noNimScript.} =
+  tags: [ReadIOEffect, WriteIOEffect], noNimScript, raises: [OSError, IOError].} =
   ## Copies a file from `source` to `dest`.
   ##
   ## If this fails, `OSError` is raised.
@@ -1751,7 +1760,8 @@ proc tryRemoveFile*(file: string): bool {.rtl, extern: "nos$1", tags: [WriteDirE
     if unlink(file) != 0'i32 and errno != ENOENT:
       result = false
 
-proc removeFile*(file: string) {.rtl, extern: "nos$1", tags: [WriteDirEffect], noNimScript.} =
+proc removeFile*(file: string) {.rtl, extern: "nos$1", tags: [WriteDirEffect],
+                                noNimScript, raises: OSError.} =
   ## Removes the `file`.
   ##
   ## If this fails, `OSError` is raised. This does not fail
@@ -1768,7 +1778,7 @@ proc removeFile*(file: string) {.rtl, extern: "nos$1", tags: [WriteDirEffect], n
   if not tryRemoveFile(file):
     raiseOSError(osLastError(), file)
 
-proc tryMoveFSObject(source, dest: string): bool {.noNimScript.} =
+proc tryMoveFSObject(source, dest: string): bool {.noNimScript, raises: OSError.} =
   ## Moves a file or directory from `source` to `dest`.
   ##
   ## Returns false in case of `EXDEV` error.
@@ -1792,7 +1802,8 @@ proc tryMoveFSObject(source, dest: string): bool {.noNimScript.} =
   return true
 
 proc moveFile*(source, dest: string) {.rtl, extern: "nos$1",
-  tags: [ReadIOEffect, WriteIOEffect], noNimScript.} =
+  tags: [ReadIOEffect, WriteIOEffect], noNimScript,
+  raises: [OSError, IOError, Exception].} =
   ## Moves a file from `source` to `dest`.
   ##
   ## If this fails, `OSError` is raised.
@@ -1903,7 +1914,8 @@ template walkCommon(pattern: string, filter) =
         if filter(path):
           yield path
 
-iterator walkPattern*(pattern: string): string {.tags: [ReadDirEffect], noNimScript.} =
+iterator walkPattern*(pattern: string): string {.tags: [ReadDirEffect],
+                                                noNimScript, raises: OSError.} =
   ## Iterate over all the files and directories that match the `pattern`.
   ##
   ## On POSIX this uses the `glob`:idx: call.
@@ -1917,7 +1929,8 @@ iterator walkPattern*(pattern: string): string {.tags: [ReadDirEffect], noNimScr
   ## * `walkDirRec iterator <#walkDirRec.i,string>`_
   walkCommon(pattern, defaultWalkFilter)
 
-iterator walkFiles*(pattern: string): string {.tags: [ReadDirEffect], noNimScript.} =
+iterator walkFiles*(pattern: string): string {.tags: [ReadDirEffect],
+                                              noNimScript, raises: OSError.} =
   ## Iterate over all the files that match the `pattern`.
   ##
   ## On POSIX this uses the `glob`:idx: call.
@@ -1931,7 +1944,8 @@ iterator walkFiles*(pattern: string): string {.tags: [ReadDirEffect], noNimScrip
   ## * `walkDirRec iterator <#walkDirRec.i,string>`_
   walkCommon(pattern, isFile)
 
-iterator walkDirs*(pattern: string): string {.tags: [ReadDirEffect], noNimScript.} =
+iterator walkDirs*(pattern: string): string {.tags: [ReadDirEffect],
+                                             noNimScript, raises: OSError.} =
   ## Iterate over all the directories that match the `pattern`.
   ##
   ## On POSIX this uses the `glob`:idx: call.
@@ -1946,7 +1960,7 @@ iterator walkDirs*(pattern: string): string {.tags: [ReadDirEffect], noNimScript
   walkCommon(pattern, isDir)
 
 proc expandFilename*(filename: string): string {.rtl, extern: "nos$1",
-  tags: [ReadDirEffect], noNimScript.} =
+  tags: [ReadDirEffect], noNimScript, raises: OSError.} =
   ## Returns the full (`absolute`:idx:) path of an existing file `filename`.
   ##
   ## Raises `OSError` in case of an error. Follows symlinks.
@@ -2029,7 +2043,7 @@ proc staticWalkDir(dir: string; relative: bool): seq[
   discard
 
 iterator walkDir*(dir: string; relative = false, checkDir = false):
-  tuple[kind: PathComponent, path: string] {.tags: [ReadDirEffect].} =
+  tuple[kind: PathComponent, path: string] {.tags: [ReadDirEffect], raises: OSError.} =
   ## Walks over the directory `dir` and yields for each directory or file in
   ## `dir`. The component type and full path for each item are returned.
   ##
@@ -2126,9 +2140,9 @@ iterator walkDir*(dir: string; relative = false, checkDir = false):
               k = getSymlinkFileKind(path)
             yield (k, y)
 
-iterator walkDirRec*(dir: string,
-                     yieldFilter = {pcFile}, followFilter = {pcDir},
-                     relative = false, checkDir = false): string {.tags: [ReadDirEffect].} =
+iterator walkDirRec*(dir: string, yieldFilter = {pcFile}, followFilter = {pcDir},
+  relative = false, checkDir = false): string {.
+  tags: [ReadDirEffect], raises: OSError.} =
   ## Recursively walks over the directory `dir` and yields for each file
   ## or directory in `dir`.
   ##
@@ -2180,7 +2194,7 @@ iterator walkDirRec*(dir: string,
       # continue iteration.
       # Future work can provide a way to customize this and do error reporting.
 
-proc rawRemoveDir(dir: string) {.noNimScript.} =
+proc rawRemoveDir(dir: string) {.noNimScript, raises: OSError.} =
   when defined(windows):
     when useWinUnicode:
       wrapUnary(res, removeDirectoryW, dir)
@@ -2194,7 +2208,7 @@ proc rawRemoveDir(dir: string) {.noNimScript.} =
     if rmdir(dir) != 0'i32 and errno != ENOENT: raiseOSError(osLastError(), dir)
 
 proc removeDir*(dir: string, checkDir = false) {.rtl, extern: "nos$1", tags: [
-  WriteDirEffect, ReadDirEffect], benign, noNimScript.} =
+  WriteDirEffect, ReadDirEffect], benign, noNimScript, raises: OSError.} =
   ## Removes the directory `dir` including all subdirectories and files
   ## in `dir` (recursively).
   ##
@@ -2218,7 +2232,7 @@ proc removeDir*(dir: string, checkDir = false) {.rtl, extern: "nos$1", tags: [
       # the same files)
   rawRemoveDir(dir)
 
-proc rawCreateDir(dir: string): bool {.noNimScript.} =
+proc rawCreateDir(dir: string): bool {.noNimScript, raises: OSError.} =
   # Try to create one directory (not the whole path).
   # returns `true` for success, `false` if the path has previously existed
   #
@@ -2263,7 +2277,7 @@ proc rawCreateDir(dir: string): bool {.noNimScript.} =
       raiseOSError(osLastError(), dir)
 
 proc existsOrCreateDir*(dir: string): bool {.rtl, extern: "nos$1",
-  tags: [WriteDirEffect, ReadDirEffect], noNimScript.} =
+  tags: [WriteDirEffect, ReadDirEffect], noNimScript, raises: [OSError, IOError].} =
   ## Check if a `directory`:idx: `dir` exists, and create it otherwise.
   ##
   ## Does not create parent directories (fails if parent does not exist).
@@ -2283,7 +2297,7 @@ proc existsOrCreateDir*(dir: string): bool {.rtl, extern: "nos$1",
       raise newException(IOError, "Failed to create '" & dir & "'")
 
 proc createDir*(dir: string) {.rtl, extern: "nos$1",
-  tags: [WriteDirEffect, ReadDirEffect], noNimScript.} =
+  tags: [WriteDirEffect, ReadDirEffect], noNimScript, raises: [OSError, IOError].} =
   ## Creates the `directory`:idx: `dir`.
   ##
   ## The directory may contain several subdirectories that do not exist yet.
@@ -2314,7 +2328,8 @@ proc createDir*(dir: string) {.rtl, extern: "nos$1",
     discard existsOrCreateDir(dir)
 
 proc copyDir*(source, dest: string) {.rtl, extern: "nos$1",
-  tags: [WriteIOEffect, ReadIOEffect], benign, noNimScript.} =
+  tags: [WriteIOEffect, ReadIOEffect], benign, noNimScript,
+  raises: [OSError, IOError].} =
   ## Copies a directory from `source` to `dest`.
   ##
   ## If this fails, `OSError` is raised.
@@ -2345,7 +2360,8 @@ proc copyDir*(source, dest: string) {.rtl, extern: "nos$1",
       copyDir(path, dest / noSource)
     else: discard
 
-proc moveDir*(source, dest: string) {.tags: [ReadIOEffect, WriteIOEffect], noNimScript.} =
+proc moveDir*(source, dest: string) {.tags: [ReadIOEffect, WriteIOEffect],
+                                     noNimScript, raises: [IOError, OSError].} =
   ## Moves a directory from `source` to `dest`.
   ##
   ## If this fails, `OSError` is raised.
@@ -2363,7 +2379,7 @@ proc moveDir*(source, dest: string) {.tags: [ReadIOEffect, WriteIOEffect], noNim
       copyDir(source, dest)
       removeDir(source)
 
-proc createSymlink*(src, dest: string) {.noNimScript.} =
+proc createSymlink*(src, dest: string) {.noNimScript, raises: OSError.} =
   ## Create a symbolic link at `dest` which points to the item specified
   ## by `src`. On most operating systems, will fail if a link already exists.
   ##
@@ -2391,7 +2407,7 @@ proc createSymlink*(src, dest: string) {.noNimScript.} =
     if symlink(src, dest) != 0:
       raiseOSError(osLastError(), $(src, dest))
 
-proc createHardlink*(src, dest: string) {.noNimScript.} =
+proc createHardlink*(src, dest: string) {.noNimScript, raises: OSError.} =
   ## Create a hard link at `dest` which points to the item specified
   ## by `src`.
   ##
@@ -2414,7 +2430,7 @@ proc createHardlink*(src, dest: string) {.noNimScript.} =
       raiseOSError(osLastError(), $(src, dest))
 
 proc copyFileWithPermissions*(source, dest: string,
-                              ignorePermissionErrors = true) {.noNimScript.} =
+  ignorePermissionErrors = true) {.noNimScript, raises: [IOError, Exception].} =
   ## Copies a file from `source` to `dest` preserving file permissions.
   ##
   ## This is a wrapper proc around `copyFile <#copyFile,string,string>`_,
@@ -2448,7 +2464,8 @@ proc copyFileWithPermissions*(source, dest: string,
 
 proc copyDirWithPermissions*(source, dest: string,
     ignorePermissionErrors = true) {.rtl, extern: "nos$1",
-    tags: [WriteIOEffect, ReadIOEffect], benign, noNimScript.} =
+    tags: [WriteIOEffect, ReadIOEffect], benign, noNimScript,
+    raises: [IOError, Exception].} =
   ## Copies a directory from `source` to `dest` preserving file permissions.
   ##
   ## If this fails, `OSError` is raised. This is a wrapper proc around `copyDir
@@ -2490,8 +2507,8 @@ proc copyDirWithPermissions*(source, dest: string,
     else: discard
 
 proc inclFilePermissions*(filename: string,
-                          permissions: set[FilePermission]) {.
-  rtl, extern: "nos$1", tags: [ReadDirEffect, WriteDirEffect], noNimScript.} =
+  permissions: set[FilePermission]) {.rtl, extern: "nos$1",
+  tags: [ReadDirEffect, WriteDirEffect], noNimScript, raises: OSError.} =
   ## A convenience proc for:
   ##
   ## .. code-block:: nim
@@ -2499,15 +2516,15 @@ proc inclFilePermissions*(filename: string,
   setFilePermissions(filename, getFilePermissions(filename)+permissions)
 
 proc exclFilePermissions*(filename: string,
-                          permissions: set[FilePermission]) {.
-  rtl, extern: "nos$1", tags: [ReadDirEffect, WriteDirEffect], noNimScript.} =
+  permissions: set[FilePermission]) {.rtl, extern: "nos$1",
+  tags: [ReadDirEffect, WriteDirEffect], noNimScript, raises: OSError.} =
   ## A convenience proc for:
   ##
   ## .. code-block:: nim
   ##   setFilePermissions(filename, getFilePermissions(filename)-permissions)
   setFilePermissions(filename, getFilePermissions(filename)-permissions)
 
-proc expandSymlink*(symlinkPath: string): string {.noNimScript.} =
+proc expandSymlink*(symlinkPath: string): string {.noNimScript, raises: OSError.} =
   ## Returns a string representing the path to which the symbolic link points.
   ##
   ## On Windows this is a noop, ``symlinkPath`` is simply returned.
@@ -2686,10 +2703,10 @@ when defined(nimdoc):
     ##     # Do something else!
 
 elif defined(nintendoswitch) or weirdTarget:
-  proc paramStr*(i: int): TaintedString {.tags: [ReadIOEffect].} =
+  proc paramStr*(i: int): TaintedString {.tags: [ReadIOEffect], raises: OSError.} =
     raise newException(OSError, "paramStr is not implemented on Nintendo Switch")
 
-  proc paramCount*(): int {.tags: [ReadIOEffect].} =
+  proc paramCount*(): int {.tags: [ReadIOEffect], raises: OSError.} =
     raise newException(OSError, "paramCount is not implemented on Nintendo Switch")
 
 elif defined(windows):
@@ -2710,7 +2727,7 @@ elif defined(windows):
     result = ownArgv.len-1
 
   proc paramStr*(i: int): TaintedString {.rtl, extern: "nos$1",
-    tags: [ReadIOEffect].} =
+                                         tags: [ReadIOEffect], raises: IndexError.} =
     # Docstring in nimdoc block.
     if not ownParsedArgv:
       ownArgv = parseCmdLine($getCommandLine())
@@ -2719,10 +2736,10 @@ elif defined(windows):
     raise newException(IndexError, formatErrorIndexBound(i, ownArgv.len-1))
 
 elif defined(genode):
-  proc paramStr*(i: int): TaintedString =
+  proc paramStr*(i: int): TaintedString {.raises: OSError.} =
     raise newException(OSError, "paramStr is not implemented on Genode")
 
-  proc paramCount*(): int =
+  proc paramCount*(): int {.raises: OSError.} =
     raise newException(OSError, "paramCount is not implemented on Genode")
 
 elif not defined(createNimRtl) and
@@ -2732,7 +2749,7 @@ elif not defined(createNimRtl) and
     cmdCount {.importc: "cmdCount".}: cint
     cmdLine {.importc: "cmdLine".}: cstringArray
 
-  proc paramStr*(i: int): TaintedString {.tags: [ReadIOEffect].} =
+  proc paramStr*(i: int): TaintedString {.tags: [ReadIOEffect], raises: IndexError.} =
     # Docstring in nimdoc block.
     if i < cmdCount and i >= 0: return TaintedString($cmdLine[i])
     raise newException(IndexError, formatErrorIndexBound(i, cmdCount-1))
@@ -2742,7 +2759,7 @@ elif not defined(createNimRtl) and
     result = cmdCount-1
 
 when declared(paramCount) or defined(nimdoc):
-  proc commandLineParams*(): seq[TaintedString] =
+  proc commandLineParams*(): seq[TaintedString] {.raises: [OSError, IndexError].} =
     ## Convenience proc which returns the command line parameters.
     ##
     ## This returns **only** the parameters. If you want to get the application
@@ -2860,7 +2877,7 @@ when defined(openbsd):
       result = ""
 
 when not (defined(windows) or defined(macosx) or weirdTarget):
-  proc getApplHeuristic(): string =
+  proc getApplHeuristic(): string {.raises: [OSError, IndexError].} =
     when declared(paramStr):
       result = string(paramStr(0))
       # POSIX guaranties that this contains the executable
@@ -2903,7 +2920,8 @@ when defined(haiku):
     else:
       result = ""
 
-proc getAppFilename*(): string {.rtl, extern: "nos$1", tags: [ReadIOEffect], noNimScript.} =
+proc getAppFilename*(): string {.rtl, extern: "nos$1", tags: [ReadIOEffect],
+                                noNimScript, raises: [OSError, IndexError].} =
   ## Returns the filename of the application's executable.
   ## This proc will resolve symlinks.
   ##
@@ -2969,7 +2987,8 @@ proc getAppFilename*(): string {.rtl, extern: "nos$1", tags: [ReadIOEffect], noN
     if result.len == 0:
       result = getApplHeuristic()
 
-proc getAppDir*(): string {.rtl, extern: "nos$1", tags: [ReadIOEffect], noNimScript.} =
+proc getAppDir*(): string {.rtl, extern: "nos$1", tags: [ReadIOEffect],
+                           noNimScript, raises: [OSError, IndexError].} =
   ## Returns the directory of the application's executable.
   ##
   ## See also:
@@ -2987,7 +3006,7 @@ proc sleep*(milsecs: int) {.rtl, extern: "nos$1", tags: [TimeEffect], noNimScrip
     discard posix.nanosleep(a, b)
 
 proc getFileSize*(file: string): BiggestInt {.rtl, extern: "nos$1",
-  tags: [ReadIOEffect], noNimScript.} =
+  tags: [ReadIOEffect], noNimScript, raises: [OSError, IOError].} =
   ## Returns the file size of `file` (in bytes). ``OSError`` is
   ## raised in case of an error.
   when defined(windows):
@@ -3094,7 +3113,7 @@ when defined(js):
   when not declared(File):
     type File = object
 
-proc getFileInfo*(handle: FileHandle): FileInfo {.noNimScript.} =
+proc getFileInfo*(handle: FileHandle): FileInfo {.noNimScript, raises: OSError.} =
   ## Retrieves file information for the file object represented by the given
   ## handle.
   ##
@@ -3120,7 +3139,7 @@ proc getFileInfo*(handle: FileHandle): FileInfo {.noNimScript.} =
       raiseOSError(osLastError(), $handle)
     rawToFormalFileInfo(rawInfo, "", result)
 
-proc getFileInfo*(file: File): FileInfo {.noNimScript.} =
+proc getFileInfo*(file: File): FileInfo {.noNimScript, raises: [OSError, IOError].} =
   ## Retrieves file information for the file object.
   ##
   ## See also:
@@ -3130,7 +3149,8 @@ proc getFileInfo*(file: File): FileInfo {.noNimScript.} =
     raise newException(IOError, "File is nil")
   result = getFileInfo(file.getFileHandle())
 
-proc getFileInfo*(path: string, followSymlink = true): FileInfo {.noNimScript.} =
+proc getFileInfo*(path: string, followSymlink = true): FileInfo {.
+  noNimScript, raises: OSError.} =
   ## Retrieves file information for the file object pointed to by `path`.
   ##
   ## Due to intrinsic differences between operating systems, the information
@@ -3210,7 +3230,8 @@ proc getCurrentProcessId*(): int {.noNimScript.} =
   else:
     result = getpid()
 
-proc setLastModificationTime*(file: string, t: times.Time) {.noNimScript.} =
+proc setLastModificationTime*(file: string, t: times.Time) {.
+  noNimScript, raises: OSError.} =
   ## Sets the `file`'s last modification time. `OSError` is raised in case of
   ## an error.
   when defined(posix):
@@ -3232,7 +3253,8 @@ func isValidFilename*(filename: string, maxLen = 259.Positive): bool {.since: (1
   ##
   ## This is useful if you want to copy or save files across Windows, Linux, Mac, etc.
   ## You can pass full paths as argument too, but func only checks filenames.
-  ## It uses ``invalidFilenameChars``, ``invalidFilenames`` and ``maxLen`` to verify the specified ``filename``.
+  ## It uses ``invalidFilenameChars``, ``invalidFilenames`` and ``maxLen`` to
+  ## verify the specified ``filename``.
   ##
   ## .. code-block:: nim
   ##   assert not isValidFilename(" foo")    ## Leading white space
@@ -3252,6 +3274,8 @@ func isValidFilename*(filename: string, maxLen = 259.Positive): bool {.since: (1
     find(f.name, invalidFilenameChars) != -1): return false
   for invalid in invalidFilenames:
     if cmpIgnoreCase(f.name, invalid) == 0: return false
+
+{.pop.} # {.push raises: [].}
 
 
 when isMainModule:

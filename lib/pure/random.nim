@@ -206,30 +206,6 @@ proc skipRandomNumbers*(s: var Rand) =
   s.a0 = s0
   s.a1 = s1
 
-proc random*(max: int): int {.benign, deprecated:
-  "Deprecated since v0.18.0; use 'rand' instead".} =
-  while true:
-    let x = next(state)
-    if x < randMax - (randMax mod Ui(max)):
-      return int(x mod uint64(max))
-
-proc random*(max: float): float {.benign, deprecated:
-  "Deprecated since v0.18.0; use 'rand' instead".} =
-  let x = next(state)
-  when defined(js):
-    result = (float(x) / float(high(uint32))) * max
-  else:
-    let u = (0x3FFu64 shl 52u64) or (x shr 12u64)
-    result = (cast[float](u) - 1.0) * max
-
-proc random*[T](x: HSlice[T, T]): T {.deprecated:
-  "Deprecated since v0.18.0; use 'rand' instead".} =
-  result = T(random(x.b - x.a)) + x.a
-
-proc random*[T](a: openArray[T]): T {.deprecated:
-  "Deprecated since v0.18.0; use 'sample' instead".} =
-  result = a[random(a.low..a.len)]
-
 proc rand*(r: var Rand; max: Natural): int {.benign.} =
   ## Returns a random integer in the range `0..max` using the given state.
   ##
@@ -687,6 +663,6 @@ when isMainModule:
 
 
     # don't use causes integer overflow
-    doAssert compiles(random[int](low(int) .. high(int)))
+    doAssert compiles(rand[int](low(int) .. high(int)))
 
   main()

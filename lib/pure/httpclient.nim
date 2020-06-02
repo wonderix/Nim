@@ -955,17 +955,6 @@ proc format(client: HttpClient | AsyncHttpClient,
   for s in result: length += s.len
   client.headers["Content-Length"] = $length
 
-proc override(fallback, override: HttpHeaders): HttpHeaders =
-  # Right-biased map union for `HttpHeaders`
-  if override.isNil:
-    return fallback
-
-  result = newHttpHeaders()
-  # Copy by value
-  result.table[] = fallback.table[]
-  for k, vs in override.table:
-    result[k] = vs
-
 proc requestAux(client: HttpClient | AsyncHttpClient, url, httpMethod: string,
                 body = "", headers: HttpHeaders = nil,
                 multipart: MultipartData = nil): Future[Response | AsyncResponse]
@@ -990,7 +979,7 @@ proc requestAux(client: HttpClient | AsyncHttpClient, url, httpMethod: string,
 
   await newConnection(client, requestUrl)
 
-  let newHeaders = client.headers.override(headers)
+  let newHeaders = client.headers.merge(headers)
   if not newHeaders.hasKey("user-agent") and client.userAgent.len > 0:
     newHeaders["User-Agent"] = client.userAgent
 

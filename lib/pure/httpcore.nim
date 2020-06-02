@@ -207,6 +207,17 @@ proc getOrDefault*(headers: HttpHeaders, key: string,
 
 proc len*(headers: HttpHeaders): int = return headers.table.len
 
+proc merge*(headers: HttpHeaders, override: HttpHeaders): HttpHeaders =
+  ## Merges the second set of headers into the first one 
+  if override.isNil:
+    return headers
+
+  result = newHttpHeaders(titleCase=(headers.isTitleCase or override.isTitleCase ))
+  for table in @[headers.table, override.table]:
+    for key, value in table:
+      result.table[headers.toCaseInsensitive(key)] = value
+
+
 proc parseList(line: string, list: var seq[string], start: int): int =
   var i = 0
   var current = ""
